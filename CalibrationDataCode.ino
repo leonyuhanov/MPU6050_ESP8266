@@ -70,6 +70,7 @@ void loop()
   gyroData[1][0] = gyroData[0][0]/ticker;
   gyroData[1][1] = gyroData[0][1]/ticker;
   gyroData[1][2] = gyroData[0][2]/ticker;
+  ticker++;
   
   /*
   Print out the following table:
