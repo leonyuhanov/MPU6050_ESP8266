@@ -1,0 +1,2 @@
+# MPU6050_ESP8266
+Basic use of the MPU6050 IMU with an ESP8266
