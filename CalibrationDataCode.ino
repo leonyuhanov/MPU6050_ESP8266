@@ -1,8 +1,7 @@
 /*
 Intented to output 
 -the Centre Point of the Accelerometers & Gyros
--Average drift still drift for each sensor
-
+-Average still drift for each sensor
 	INSTRUCTIONS FOR USE
 	-Upload to the ESP8266 module
 	-Set the MPU6050 flat and as still as possible
@@ -12,9 +11,8 @@ Intented to output
 #include <ESP8266WiFi.h>
 
 const int MPU=0x68; 
-int AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
-long accellData[2][3], gyroData[2][3];
-int dataPoints[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}}
+int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
+int16_t accellData[2][3], gyroData[2][3];
 int ticker=1;
 //I2C Data & Clock pin foniguration, choose as you like
 const byte dataPIN = D3, clockPIN = D4;
