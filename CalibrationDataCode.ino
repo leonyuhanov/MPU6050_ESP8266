@@ -12,7 +12,7 @@ Intented to output
 
 const int MPU=0x68; 
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
-int16_t accellData[2][3], gyroData[2][3];
+int16_t accellData[3][3], gyroData[3][3];
 int ticker=1;
 //I2C Data & Clock pin foniguration, choose as you like
 const byte dataPIN = D3, clockPIN = D4;
@@ -31,7 +31,7 @@ void setup()
   Wire.write(0x6B); 
   Wire.write(0);    
   Wire.endTransmission(true);
-  Serial.printf("\r\nAcc-X\tAcc-Y\tAcc-Z\tGyr-X\tGyr-Y\tGyr-Z\tFLUT_AX\tFLUT_AY\tFLUT_AZ\tFLUT_GX\tFLUT_GY\tFLUT_GZ\t");
+  Serial.printf("\r\nAcc-X\tAcc-Y\tAcc-Z\tGyr-X\tGyr-Y\tGyr-Z\tFLUT_AX\tFLUT_AY\tFLUT_AZ\tFLUT_GX\tFLUT_GY\tFLUT_GZ\t\AXMAX\tAYMAX\tAZMAX\tGXMAX\tGYMAX\tGZMAX");
 }
 
 void loop()
@@ -68,14 +68,23 @@ void loop()
   gyroData[1][0] = gyroData[0][0]/ticker;
   gyroData[1][1] = gyroData[0][1]/ticker;
   gyroData[1][2] = gyroData[0][2]/ticker;
+  //Calculate Sensor max values
+  if(AcX<accellData[2][0]){accellData[2][0]=AcX;}
+  if(AcY<accellData[2][1]){accellData[2][1]=AcY;}
+  if(AcZ<accellData[2][2]){accellData[2][2]=AcZ;}
+  if(GyX<gyroData[2][0]){gyroData[2][0]=GyX;}
+  if(GyY<gyroData[2][1]){gyroData[2][1]=GyY;}
+  if(GyZ<gyroData[2][2]){gyroData[2][2]=GyZ;}
+  
   ticker++;
   
   /*
   Print out the following table:
-  Accel-X|Accel-Y|Accel-Z|Gyro-X|Gyro-Y|Gyro-Z|Accel-X_FLUTTER|Accel-Y_FLUTTER|Accel-Z_FLUTTER|Gyro-X_FLUTTER|Gyro-Y_FLUTTER|Gyro-Z_FLUTTER
+  Accel-X|Accel-Y|Accel-Z|Gyro-X|Gyro-Y|Gyro-Z|Accel-X_FLUTTER|Accel-Y_FLUTTER|Accel-Z_FLUTTER|Gyro-X_FLUTTER|Gyro-Y_FLUTTER|Gyro-Z_FLUTTER|AXMAX|AYMAX|AZMAX|GXMAX|GYMAX|GZMAX
   */
   Serial.printf("\r\n%d\t%d\t%d\t%d\t%d\t%d", AcX, AcY, AcZ, GyX, GyY, GyZ);
   Serial.printf("\t%d\t%d\t%d\t%d\t%d\t%d", accellData[1][0], accellData[1][1], accellData[1][2], gyroData[1][0], gyroData[1][1], gyroData[1][2]);
- 
+  Serial.printf("\t%d\t%d\t%d\t%d\t%d\t%d", accellData[2][0], accellData[2][1], accellData[2][2], gyroData[2][0], gyroData[2][1], gyroData[2][2]);
+  
   delay(50);
 }
