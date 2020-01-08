@@ -20,9 +20,8 @@ int accellPeakValues[3] = {32768, 32768, 32768};
 int gyroPeakValues[3] = {32768, 32768, 32768};
 float accellFilters[3] = {0,0,0};
 float gyroFilters[3] = {0,0,0};
-int ticker=1;
-int calibrationRuns = 1000;
-byte calibrationDelay = 5;
+int ticker=1, aCnt=0;
+int calibrationRuns = 500, calibrationDelay = 5, caibrationMultiplier=2, sampleRate = 10;
 
 //I2C Data & Clock pin foniguration, choose as you like
 const byte dataPIN = D3, clockPIN = D4;
@@ -59,31 +58,30 @@ void setup()
     }
   }
   Serial.printf("\r\nCalibration complete");
-  accellData[1][0] = accellData[0][0]/calibrationRuns;
-  accellData[1][1] = accellData[0][1]/calibrationRuns;
-  accellData[1][2] = accellData[0][2]/calibrationRuns;
-  gyroData[1][0] = gyroData[0][0]/calibrationRuns;
-  gyroData[1][1] = gyroData[0][1]/calibrationRuns;
-  gyroData[1][2] = gyroData[0][2]/calibrationRuns;
+  for(aCnt=0; aCnt<3; aCnt++)
+  {
+    accellData[1][aCnt] = accellData[0][aCnt]/calibrationRuns;
+    gyroData[1][aCnt] = gyroData[0][aCnt]/calibrationRuns;
+  }
   Serial.printf("\r\nAX_Flutt\tAY_Flutt\tAZ_Flutt\t|\tGX_Flutt\tGY_Flutt\tGZ_Flutt");
-  Serial.printf("\r\n%d\t%d\t%d\t|\t%d\t%d\t%d", accellData[1][0], accellData[1][1], accellData[1][2], gyroData[1][0], gyroData[1][1], gyroData[1][2]);
+  Serial.printf("\r\n%d\t%d\t%d\t\t\t|\t\t\t%d\t%d\t%d", accellData[1][0], accellData[1][1], accellData[1][2], gyroData[1][0], gyroData[1][1], gyroData[1][2]);
+  
   //Set Accel avg flutter rates
-  accellFlutter[0] = accellData[1][0];
-  accellFlutter[1] = accellData[1][1];
-  accellFlutter[2] = accellData[1][2];
   //Set GYRO avg flutter rates
-  gyroFlutter[0] = gyroData[1][0];
-  gyroFlutter[1] = gyroData[1][1];
-  gyroFlutter[2] = gyroData[1][2];
+  for(aCnt=0; aCnt<3; aCnt++)
+  {
+    accellFlutter[aCnt] = accellData[1][aCnt];
+    gyroFlutter[aCnt] = gyroData[1][aCnt];
+  }
   //Set Accel peak range
-  accellPeakValues[0]-=abs(accellFlutter[0]);
-  accellPeakValues[1]-=abs(accellFlutter[1]);
-  accellPeakValues[2]-=abs(accellFlutter[2]);
   //Set Gyro peak range
-  gyroPeakValues[0]-=abs(gyroFlutter[0]);
-  gyroPeakValues[1]-=abs(gyroFlutter[1]);
-  gyroPeakValues[2]-=abs(gyroFlutter[2]);
+  for(aCnt=0; aCnt<3; aCnt++)
+  {
+    accellPeakValues[aCnt]-=abs(accellFlutter[aCnt]);
+    gyroPeakValues[aCnt]-=abs(gyroFlutter[aCnt]);
+  }
   delay(1000);
+  
   Serial.printf("\r\nStart calibration of filters for %d cycles...\r\n", calibrationRuns);
   for(ticker=0; ticker<calibrationRuns; ticker++)
   {
@@ -95,58 +93,77 @@ void setup()
     gyroData[0][1] = GyY-gyroFlutter[1];
     gyroData[0][2] = GyZ-gyroFlutter[2];
 
-    accellFilters[0] += (((float)accellData[0][0])/accellPeakValues[0])*100;
-    accellFilters[1] += (((float)accellData[0][1])/accellPeakValues[1])*100;
-    accellFilters[2] += (((float)accellData[0][2])/accellPeakValues[2])*100;
-    gyroFilters[0] += (((float)gyroData[0][0])/gyroPeakValues[0])*100;
-    gyroFilters[1] += (((float)gyroData[0][1])/gyroPeakValues[1])*100;
-    gyroFilters[2] += (((float)gyroData[0][2])/gyroPeakValues[2])*100;
+    for(aCnt=0; aCnt<3; aCnt++)
+    {
+      accellFilters[aCnt] += (((float)accellData[0][aCnt])/accellPeakValues[aCnt])*100;
+      if(gyroData[0][aCnt]>0)
+      {
+        gyroFilters[aCnt] += ( sqrt( gyroData[0][aCnt] ) / sqrt( gyroPeakValues[aCnt] ) ) * 100;
+      }
+      else
+      {
+        gyroFilters[aCnt] += (( sqrt( abs(gyroData[0][aCnt]) ) / sqrt( gyroPeakValues[aCnt] ) ) * 100);
+      }
+    }
     delay(calibrationDelay);
     if( ticker%(calibrationRuns/10)==(calibrationRuns/10)-1)
     {
       Serial.printf("%d\t", ticker);
     }
   }
-  Serial.printf("\r\nFilter Calibration complete.");
   //set filter ranges for each axis
-  accellFilters[0] = accellFilters[0]/calibrationRuns;
-  accellFilters[1] = accellFilters[1]/calibrationRuns;
-  accellFilters[2] = accellFilters[2]/calibrationRuns;
-  gyroFilters[0] = gyroFilters[0]/calibrationRuns;
-  gyroFilters[1] = gyroFilters[1]/calibrationRuns;
-  gyroFilters[2] = gyroFilters[2]/calibrationRuns;
+  for(ticker=0; ticker<3; ticker++)
+  {
+    accellFilters[ticker] = (accellFilters[ticker]/calibrationRuns)*caibrationMultiplier;
+    gyroFilters[ticker] = (gyroFilters[ticker]/calibrationRuns)*caibrationMultiplier;
+  }  
+  Serial.printf("\r\nFilter Calibration complete....");
+  Serial.printf("\r\nAx\t%f\tAy\t%f\tAz\t%f\tGx\t%f\tGy\t%f\tGz\t%f", accellFilters[0],accellFilters[1],accellFilters[2],gyroFilters[0],gyroFilters[1],gyroFilters[2]);
+  Serial.printf("\r\nIMU CALIBRATION COMPLETE\r\n");
   delay(1000);
 }
 
 void loop()
 {
-  sampleIMU();
-  //Read in raw values using the flutter rate to clip down to 0
-  accellData[0][0] = AcX-accellFlutter[0];
-  accellData[0][1] = AcY-accellFlutter[1];
-  accellData[0][2] = AcZ-accellFlutter[2];
-  gyroData[0][0] = GyX-gyroFlutter[0];
-  gyroData[0][1] = GyY-gyroFlutter[1];
-  gyroData[0][2] = GyZ-gyroFlutter[2];
+  //Take sampleRate samples
+  for(aCnt=0; aCnt<sampleRate; aCnt++)
+  {
+    sampleIMU();
+    //Read in raw values using the flutter rate to clip down to 0
+    accellData[0][0] += AcX-accellFlutter[0];
+    accellData[0][1] += AcY-accellFlutter[1];
+    accellData[0][2] += AcZ-accellFlutter[2];
+    gyroData[0][0] += GyX-gyroFlutter[0];
+    gyroData[0][1] += GyY-gyroFlutter[1];
+    gyroData[0][2] += GyZ-gyroFlutter[2];
+  }
+  for(aCnt=0; aCnt<3; aCnt++)
+  {
+    accellData[0][aCnt] = accellData[0][aCnt]/sampleRate;
+    gyroData[0][aCnt] = gyroData[0][aCnt]/sampleRate;
+  }
   
   //calculate ratio based on peak
-  rangedAccellData[0] = (((float)accellData[0][0])/accellPeakValues[0])*100;
-  rangedAccellData[1] = (((float)accellData[0][1])/accellPeakValues[1])*100;
-  rangedAccellData[2] = (((float)accellData[0][2])/accellPeakValues[2])*100;
-  rangedGyroData[0] = (((float)gyroData[0][0])/gyroPeakValues[0])*100;
-  rangedGyroData[1] = (((float)gyroData[0][1])/gyroPeakValues[1])*100;
-  rangedGyroData[2] = (((float)gyroData[0][2])/gyroPeakValues[2])*100;
-
-  if( rangedAccellData[0]<accellFilters[0] && rangedAccellData[0]>-accellFilters[0] ){rangedAccellData[0]=0;}
-  if( rangedAccellData[1]<accellFilters[1] && rangedAccellData[1]>-accellFilters[1] ){rangedAccellData[1]=0;}
-  if( rangedAccellData[2]<accellFilters[2] && rangedAccellData[2]>-accellFilters[2] ){rangedAccellData[2]=0;}
-  if( rangedGyroData[0]<gyroFilters[0] && rangedGyroData[0]>-gyroFilters[0] ){rangedGyroData[0]=0;}
-  if( rangedGyroData[1]<gyroFilters[1] && rangedGyroData[1]>-gyroFilters[1] ){rangedGyroData[1]=0;}
-  if( rangedGyroData[2]<gyroFilters[2] && rangedGyroData[2]>-gyroFilters[2] ){rangedGyroData[2]=0;}
-  
-  Serial.printf("\r\n%f\t%f\t%f\t%f\t%f\t%f", rangedAccellData[0], rangedAccellData[1], rangedAccellData[2], rangedGyroData[0], rangedGyroData[1], rangedGyroData[2]);
-
-  delay(50);
+  for(aCnt=0; aCnt<3; aCnt++)
+  {
+    rangedAccellData[aCnt] = (((float)accellData[0][aCnt])/accellPeakValues[aCnt])*100;
+    if(gyroData[0][aCnt]>0)
+    {
+      rangedGyroData[aCnt] = ( sqrt( gyroData[0][aCnt] ) / sqrt( gyroPeakValues[aCnt] ) ) * 100;
+    }
+    else
+    {
+      rangedGyroData[aCnt] = -(( sqrt( abs(gyroData[0][aCnt]) ) / sqrt( gyroPeakValues[aCnt] ) ) * 100);
+    }
+    
+    if( rangedAccellData[aCnt]<accellFilters[aCnt] && rangedAccellData[aCnt]>-accellFilters[aCnt] ){rangedAccellData[aCnt]=0;}
+    if( rangedGyroData[aCnt]<gyroFilters[aCnt] && rangedGyroData[aCnt]>-gyroFilters[aCnt] ){rangedGyroData[aCnt]=0;}
+  }
+  //Serial.printf("\r\n%f\t%f\t%f\t%f\t%f\t%f", rangedAccellData[0], rangedAccellData[1], rangedAccellData[2], rangedGyroData[0], rangedGyroData[1], rangedGyroData[2]);
+  Serial.printf("\r\n%f\t%f\t%f\t%f\t%f\t%f", round(rangedAccellData[0]), round(rangedAccellData[1]), round(rangedAccellData[2]), round(rangedGyroData[0]), round(rangedGyroData[1]), round(rangedGyroData[2]));
+  //Serial.printf("\r\n%f\t%f\t%f", round(rangedGyroData[0]), round(rangedGyroData[1]), round(rangedGyroData[2]));
+  //Serial.printf("\r\n%f", round(rangedGyroData[0]));
+  delay(10);
 }
 
 void sampleIMU()
