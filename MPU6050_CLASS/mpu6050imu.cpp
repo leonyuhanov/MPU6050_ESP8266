@@ -114,7 +114,7 @@ void mpu6050imu::readIMU()
   GyZ=Wire.read()<<8|Wire.read(); 
 }
 
-void mpu6050imu::integration(int maxGyroTrackDistance, int maxAccellTrackDistance)
+void mpu6050imu::integration()
 {
   float timePerSlice = ((float)(millis()-sampleTimer))/1000;
   
@@ -158,22 +158,22 @@ void mpu6050imu::integration(int maxGyroTrackDistance, int maxAccellTrackDistanc
     rangedDistanceData[aCnt] += integralAccellData[aCnt];
     
     //limit filters for gyro
-    if(rangedAngularData[aCnt]>maxGyroTrackDistance)
+    if(rangedAngularData[aCnt]>gyroTrackranges[aCnt][1])
     {
-      rangedAngularData[aCnt]=maxGyroTrackDistance;
+      rangedAngularData[aCnt]=gyroTrackranges[aCnt][1];
     }
-    else if(rangedAngularData[aCnt]<-maxGyroTrackDistance)
+    else if(rangedAngularData[aCnt]<gyroTrackranges[aCnt][0])
     {
-      rangedAngularData[aCnt]=-maxGyroTrackDistance;
+      rangedAngularData[aCnt]=gyroTrackranges[aCnt][0];
     }
     //limit filters for accell
-    if(rangedDistanceData[aCnt]>maxAccellTrackDistance)
+    if(rangedDistanceData[aCnt]>accellTrackranges[aCnt][1])
     {
-      rangedDistanceData[aCnt]=maxAccellTrackDistance;
+      rangedDistanceData[aCnt]=accellTrackranges[aCnt][1];
     }
-    else if(rangedDistanceData[aCnt]<-maxAccellTrackDistance)
+    else if(rangedDistanceData[aCnt]<accellTrackranges[aCnt][0])
     {
-      rangedDistanceData[aCnt]=-maxAccellTrackDistance;
+      rangedDistanceData[aCnt]=accellTrackranges[aCnt][0];
     }
   }
   

@@ -9,7 +9,7 @@ class mpu6050imu
     void init();
     void readIMU();
     void calibrate();
-    void integration(int maxGyroTrackDistance, int maxAccellTrackDistance); 
+    void integration(); 
     float getSlope(float x1, float x2);
     
     const int deviceI2CAddress = 0x68;
@@ -28,13 +28,15 @@ class mpu6050imu
     int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
     long accellData[2][3];
     long gyroData[2][3];
-    float rangedDistanceData[3];  //stores the real time current TRACKED angular position offset -maxAccellTrackDistance to maxAccellTrackDistance bound to those min/max values
-    float rangedAngularData[3];   //stores the real time current TRACKED angular position offset -maxGyroTrackDistance to maxGyroTrackDistance bound to those min/max values
+    float rangedDistanceData[3];  //stores the real time current TRACKED angular position offset accellTrackranges[axisIndex][0] to accellTrackranges[axisIndex][1] bound to those min/max values
+    float rangedAngularData[3];   //stores the real time current TRACKED angular position offset gyroTrackranges[axisIndex][0] to gyroTrackranges[axisIndex][1] bound to those min/max values
     int accellFlutter[3] = {0, 0, 0};
     int gyroFlutter[3] = {0, 0, 0};
     float accellFilters[3] = {0,0,0};
     float gyroFilters[3] = {0,0,0};
-    //Calibration settings
+    short int accellTrackranges[3][2] = {{0,100}, {0,100}, {0,100}};
+	  short int gyroTrackranges[3][2] = {{0,360}, {0,360}, {0,360}};
+	  //Calibration settings
     unsigned short int calibrationRuns = 100;
     unsigned short int calibrationDelay = 1;
     unsigned short int caibrationMultiplier=3;

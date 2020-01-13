@@ -31,7 +31,7 @@ void setup()
 
 void loop()
 {
-  imuDevice.integration(360, 100);
+  imuDevice.integration();
   Serial.printf("\r\n%f\t%f\t%f", imuDevice.rangedAngularData[0], imuDevice.rangedAngularData[1], imuDevice.rangedAngularData[2]);
   delay(20);
 }
