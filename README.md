@@ -52,6 +52,22 @@ Calibrate the sensor (make sure its in stil position not moving, not being vibra
   imuDevice.calibrate();
 ```
 
+OPTIONALY: Set the acceleration & gyro trackign ranges
+
+```C++
+  //X Axis index 0
+  axisIndex=0; 
+  Set min tracking output for Accelerometer to 0
+  imuDevice.accellTrackranges[axisIndex][0]=0;
+  Set max tracking output for Accelerometer to 100
+  imuDevice.accellTrackranges[axisIndex][1]=100;
+  
+  Set min tracking output for Gyro to 0
+  imuDevice.gyroTrackranges[axisIndex][0]=0;
+  Set max tracking output for Gyro to 100
+  imuDevice.gyroTrackranges[axisIndex][1]=100;
+```
+
 To read tracked angular data simply loop this:
 
 ```C++
