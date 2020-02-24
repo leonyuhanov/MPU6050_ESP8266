@@ -116,7 +116,8 @@ void mpu6050imu::readIMU()
 
 void mpu6050imu::integration()
 {
-  float timePerSlice = ((float)(millis()-sampleTimer))/1000;
+  //float timePerSlice = ((float)(millis()-sampleTimer))/1000;
+  float timePerSlice = ((float)(millis()-sampleTimer));
   
   //zero out internal counters
   for(aCnt=0; aCnt<3; aCnt++)
@@ -147,7 +148,8 @@ void mpu6050imu::integration()
     }
     if(tempGyroData[aCnt]>gyroFilters[aCnt] || tempGyroData[aCnt]<-gyroFilters[aCnt])
     {
-      integralGyroData[aCnt] += tempGyroData[aCnt] * timePerSlice;
+      //integralGyroData[aCnt] += tempGyroData[aCnt] * timePerSlice;
+      integralGyroData[aCnt] += tempGyroData[aCnt] / timePerSlice;
     }
   }
 

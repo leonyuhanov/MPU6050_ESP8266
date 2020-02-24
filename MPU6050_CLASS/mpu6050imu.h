@@ -13,8 +13,8 @@ class mpu6050imu
     float getSlope(float x1, float x2);
     
     const int deviceI2CAddress = 0x68;
-    byte i2cDataPIN;
-    byte i2cClockPIN;
+    byte i2cDataPIN = 1;
+    byte i2cClockPIN = 2;
 
     byte currentGyroRange = 0;  //Sets Gyroscope range
     byte currentAccellRange =0; //Sets Accelerometer range
@@ -41,7 +41,6 @@ class mpu6050imu
     unsigned short int calibrationDelay = 1;
     unsigned short int caibrationMultiplier=3;
     unsigned short int sampleRate = 10;
-    
     
     private:
       unsigned short int ticker=1;
