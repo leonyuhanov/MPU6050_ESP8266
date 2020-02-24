@@ -13,8 +13,8 @@ class mpu6050imu
     float getSlope(float x1, float x2);
     
     const int deviceI2CAddress = 0x68;
-    byte i2cDataPIN = D1;
-    byte i2cClockPIN = D2;
+    byte i2cDataPIN;
+    byte i2cClockPIN;
 
     byte currentGyroRange = 0;  //Sets Gyroscope range
     byte currentAccellRange =0; //Sets Accelerometer range
